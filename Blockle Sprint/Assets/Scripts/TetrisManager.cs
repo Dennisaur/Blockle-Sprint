@@ -231,6 +231,9 @@ public class TetrisManager : MonoBehaviour {
 	}
 
 	#region Movement X
+	/// <summary>
+	/// Handles X movement input
+	/// </summary>
 	void UpdateX() {
 		if (CrossPlatformInputManager.GetButtonDown ("Move Right")) {
 			MoveRight ();
@@ -314,6 +317,9 @@ public class TetrisManager : MonoBehaviour {
 	#endregion
 
 	#region Movement Y
+	/// <summary>
+	/// Updates Y position and input
+	/// </summary>
 	void UpdateY() {
 		if (CrossPlatformInputManager.GetButtonDown ("Hard Drop")) {
 			HardDrop();
@@ -398,6 +404,9 @@ public class TetrisManager : MonoBehaviour {
 	}
 
 	#region Rotation
+	/// <summary>
+	/// Handles rotation input
+	/// </summary>
 	void UpdateRotation() {
 		if (CrossPlatformInputManager.GetButtonDown ("Rotate Right")) {
 			RotateRight ();
@@ -468,11 +477,13 @@ public class TetrisManager : MonoBehaviour {
 
 	/// <summary>
 	/// Kick tetromino one unit in the specified direction if current position is invalid.
+	/// Called recursively until the current position is valid or we have reached the maximum
+	/// number of kick attempts.
 	/// </summary>
 	/// <returns>Number of times kicked.</returns>
 	/// <param name="direction">Direction to shift tetromino.</param>
 	/// <param name="kickAttempts">Number of kicks to attempt.</param>
-	int Kick(Direction direction, int kickAttempts) {
+	int Kick(Direction direction, int kickAttempts = 3) {
 		if (kickAttempts <= 0) {
 			return 0;
 		}
