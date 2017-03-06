@@ -25,31 +25,46 @@ public class SettingsDisplay : MonoBehaviour {
 		arrSlider.onValueChanged.AddListener(delegate {ArrChanged();});
 	}
 
-	// Callled by onValueChanged listener
+	/// <summary>
+	/// Called by onValueChanged listener to get ghost piece toggle setting
+	/// </summary>
 	void ToggleGhostPiece() {
 		showGhostPiece = ghostPieceToggle.isOn;
 	}
 
+	/// <summary>
+	/// Updates the ghost piece setting
+	/// </summary>
 	void UpdateGhostPiece() {
 		ghostPieceToggle.isOn = showGhostPiece;
 	}
 
-	// Callled by onValueChanged listener
+	/// <summary>
+	/// Called by onValueChanged listener to get DAS slider setting
+	/// </summary>
 	void DasChanged() {
 		das = (int)dasSlider.value;
 		UpdateDASText ();
 	}
 
+	/// <summary>
+	/// Updates the DAS number text.
+	/// </summary>
 	void UpdateDASText() {
 		dasText.text = das.ToString ();
 	}
 
-	// Callled by onValueChanged listener
+	/// <summary>
+	/// Called by onValueChanged listener to get ARR slider setting
+	/// </summary>
 	void ArrChanged() {
 		arr = (int)arrSlider.value;
 		UpdateARRText ();
 	}
 
+	/// <summary>
+	/// Updates the ARR number text.
+	/// </summary>
 	void UpdateARRText() {
 		arrText.text = arr.ToString ();
 	}
@@ -72,5 +87,4 @@ public class SettingsDisplay : MonoBehaviour {
 		arrSlider.value = arr;
 		UpdateARRText ();
 	}
-
 }

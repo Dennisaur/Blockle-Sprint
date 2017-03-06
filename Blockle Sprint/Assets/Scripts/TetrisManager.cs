@@ -10,18 +10,19 @@ public class TetrisManager : MonoBehaviour {
 	#region Variables
 	public static TetrisManager tm;
 
-	public enum tetros {i, j, l, o, s, t, z};
+	public enum TetrominoType {i, j, l, o, s, t, z};
+	private enum Direction { left, right, up, down };
 
 	// Set up tetromino material dictionaries by inspector using arrays of structs
 	public TetroMaterial[] materialMap;
 	[System.Serializable]
 	public struct TetroMaterial {
-		public tetros blockType;
+		public TetrominoType blockType;
 		public Material material;
 		public Material ghostMaterial;
 	}
-	public static Dictionary<tetros, Material> tetroMaterialMap;
-	public static Dictionary<tetros, Material> tetroGhostMaterialMap;
+	public static Dictionary<TetrominoType, Material> tetroMaterialMap;
+	public static Dictionary<TetrominoType, Material> tetroGhostMaterialMap;
 
 	public GameObject placedPieces; // Empty GameObject as parent for placed pieces
 	public GameObject tetrominoObject; // Prefab GameObject with Tetromino script
@@ -35,7 +36,8 @@ public class TetrisManager : MonoBehaviour {
 	private int currentX;
 	private int currentY;
 	private GameObject currentBlock;
-	private GameObject currentTetromino;
+	private GameObject currentTetrominoObject;
+	private Tetromino currentTetromino;
 
 	// Ghost piece
 	private bool useGhostPiece = true;
@@ -53,8 +55,8 @@ public class TetrisManager : MonoBehaviour {
 	public GameObject holdFrameObjectLandscape;
 	public GameObject holdFrameObjectPortrait;
 	private GameObject activeHoldFrameObject;
-	private bool usedHold;
 	public HoldFrame holdFrame;
+	private bool usedHold;
 
 	// Menu
 	private bool paused;
@@ -67,6 +69,7 @@ public class TetrisManager : MonoBehaviour {
 	public GameObject tapToStart;
 
 	// Sprint UI
+	public GameObject sprintUIStandAlone;
 	public GameObject sprintUILandscape;
 	public GameObject sprintUIPortrait;
 	private GameObject activeSprintUI;
@@ -85,9 +88,9 @@ public class TetrisManager : MonoBehaviour {
 	// Game tuning settings
 	private bool rightDown = false;
 	private bool leftDown = false;
-	private int delayedAutoShift = 10;
+	private int delayedAutoShift = 12;
 	private int currentDAS = -1;
-	private int autoRepeatRate = 5;
+	private int autoRepeatRate = 4;
 	private int currentARR = -1;
 	#endregion
 
@@ -96,8 +99,8 @@ public class TetrisManager : MonoBehaviour {
 		tm = this;
 
 		// Instantiate material maps
-		tetroMaterialMap = new Dictionary<tetros, Material> ();
-		tetroGhostMaterialMap = new Dictionary<tetros, Material> ();
+		tetroMaterialMap = new Dictionary<TetrominoType, Material> ();
+		tetroGhostMaterialMap = new Dictionary<TetrominoType, Material> ();
 		foreach (TetroMaterial tetroMaterial in materialMap) {
 			tetroMaterialMap.Add (tetroMaterial.blockType, tetroMaterial.material);
 			tetroGhostMaterialMap.Add(tetroMaterial.blockType, tetroMaterial.ghostMaterial);
@@ -111,12 +114,11 @@ public class TetrisManager : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		//*TODO Back button to pause
 		if (Input.GetKeyDown ("escape") && !gameOver) {
 			Pause ();
 		}
 
-		if (currentTetromino == null || paused || gameOver) {
+		if (currentTetrominoObject == null || paused || gameOver) {
 			return;
 		}
 
@@ -130,7 +132,7 @@ public class TetrisManager : MonoBehaviour {
 		UpdateY ();
 
 		// Set current tetromino's position
-		currentTetromino.transform.position = new Vector3 (currentX, currentY, 0);
+		currentTetrominoObject.transform.position = new Vector3 (currentX, currentY, 0);
 	}
 
 	/// <summary>
@@ -147,7 +149,6 @@ public class TetrisManager : MonoBehaviour {
 			tempBag [iRand] = temp;
 		}
 		bag = new Stack<int> (tempBag);
-
 	}
 
 	/// <summary>
@@ -156,7 +157,7 @@ public class TetrisManager : MonoBehaviour {
 	void NextPiece() {
 		nextTetromino = Instantiate (tetrominoObject);
 		Tetromino tetromino = nextTetromino.GetComponent<Tetromino> ();
-		tetromino.CreateTetrominoBlock ((tetros)bag.Pop());
+		tetromino.CreateTetrominoBlock ((TetrominoType)bag.Pop());
 		nextTetromino.transform.parent = activeNextFrameObject.transform;
 		nextTetromino.transform.localPosition = tetromino.offset;
 		nextTetromino.transform.localScale = new Vector3 (1,1,1);
@@ -167,21 +168,21 @@ public class TetrisManager : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Spawns given piece in the tetris grid and sets it to currentTetromino.
+	/// Spawns given piece in the tetris grid and sets it to currentTetrominoObject.
 	/// </summary>
 	/// <returns><c>true</c>, if piece was spawned successfully, <c>false</c> if spawn was invalid (game over).</returns>
 	/// <param name="currentPiece">Current piece to spawn in grid.</param>
 	bool SpawnPiece(GameObject newCurrentPiece) {
-		Tetromino tetromino = newCurrentPiece.GetComponent<Tetromino> ();
-		currentTetromino = newCurrentPiece;
-		currentTetromino.transform.parent = null;
-		currentTetromino.transform.position = tetromino.spawnPosition; 
-		currentTetromino.transform.localScale = new Vector3 (1, 1, 1);
-		currentX = (int)tetromino.spawnPosition.x;
-		currentY = (int)tetromino.spawnPosition.y;
+		currentTetromino = newCurrentPiece.GetComponent<Tetromino> ();
+		currentTetrominoObject = newCurrentPiece;
+		currentTetrominoObject.transform.parent = null;
+		currentTetrominoObject.transform.position = currentTetromino.spawnPosition; 
+		currentTetrominoObject.transform.localScale = new Vector3 (1, 1, 1);
+		currentX = (int)currentTetromino.spawnPosition.x;
+		currentY = (int)currentTetromino.spawnPosition.y;
 
 		// Game over if new piece spawns in an invalid space
-		if (!CheckValid (tetromino.blockMatrix)) {
+		if (!CurrentPositionIsValid (currentTetromino.blockMatrix)) {
 			GameOver ();
 			return false;
 		}
@@ -195,15 +196,19 @@ public class TetrisManager : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Checks if current piece is in a valid position.
+	/// Checks if tetromino in current X/Y position is valid.
 	/// </summary>
 	/// <returns><c>true</c>, if current tetromino is in a valid space, <c>false</c> otherwise.</returns>
 	/// <param name="blockMatrix">Matrix of current tetromino rotation.</param>
-	bool CheckValid(GameObject[,] blockMatrix) {
+	bool CurrentPositionIsValid(GameObject[,] blockMatrix) {
 		for (int col = 0; col < blockMatrix.GetLength(1); col++) {
 			for (int row = 0; row < blockMatrix.GetLength(0); row++) {
 				GameObject currBlock = blockMatrix [row, col];
 				if (currBlock != null) {
+					// Above top of grid
+					if (currentY + (blockMatrix.GetLength (0) - 1 - row) > gridHeight - 1) {
+						return false;
+					}
 					// Hit bottom
 					if (currentY + (blockMatrix.GetLength (0) - 1 - row) < 0) {
 						return false;
@@ -284,7 +289,7 @@ public class TetrisManager : MonoBehaviour {
 	/// </summary>
 	void MoveRight() {
 		currentX += 1;
-		KickLeft ();
+		Kick (Direction.left, 1);
 		UpdateGhostPiece ();
 	}
 
@@ -293,7 +298,7 @@ public class TetrisManager : MonoBehaviour {
 	/// </summary>
 	void MoveLeft() {
 		currentX -= 1;
-		KickRight ();
+		Kick (Direction.right, 1);
 		UpdateGhostPiece ();
 	}
 	#endregion
@@ -326,8 +331,7 @@ public class TetrisManager : MonoBehaviour {
 	/// <returns><c>false</c>, if current piece dropped to an invalid space, <c>true</c> otherwise.</returns>
 	bool DropY() {
 		currentY -= 1;
-		if (!CheckValid(currentTetromino.GetComponent<Tetromino>().blockMatrix)) {
-			currentY += 1;
+		if (Kick (Direction.up, 1) == 1) {
 			return false;
 		}
 		return true;
@@ -368,19 +372,19 @@ public class TetrisManager : MonoBehaviour {
 		Destroy (ghostPiece);
 
 		// Instantiante new ghost piece and set to ghost material
-		ghostPiece = Instantiate (currentTetromino);
-		Material ghostMat = tetroGhostMaterialMap [currentTetromino.GetComponent<Tetromino>().myTetro]; 
+		ghostPiece = Instantiate (currentTetrominoObject);
+		Material ghostMat = tetroGhostMaterialMap [currentTetromino.myTetro]; 
 		foreach (Renderer child in ghostPiece.GetComponentsInChildren<Renderer>()) {
 			child.material = ghostMat;
 		}
 
 		// Simulate hard drop to determine ghost piece location
-		int temp = currentY;
+		int tempY = currentY;
 		while (DropY ())
 			;
 		ghostY = currentY;
 		ghostPiece.transform.position = new Vector3(currentX, ghostY);
-		currentY = temp;
+		currentY = tempY;
 	}
 
 	#region Rotation
@@ -397,89 +401,89 @@ public class TetrisManager : MonoBehaviour {
 	/// Rotates current piece clockwise.
 	/// </summary>
 	public void RotateRight() {
-		Tetromino tetromino = currentTetromino.GetComponent<Tetromino> ();
-		tetromino.RotateRight ();
-		
-		//*TODO Handle unable to rotate
-		if (WallKick (tetromino.blockMatrix.GetLength (0)) >= 2 * tetromino.blockMatrix.GetLength (0)) {
-			tetromino.RotateLeft ();
-		}
+		currentTetromino.RotateRight ();
 
-		UpdateGhostPiece ();
+		if (!RotationKick()) {
+			// Invalid rotation, revert to original rotation
+			currentTetromino.RotateLeft ();
+		} else {
+			// Update ghost piece with the new tetromino rotation
+			UpdateGhostPiece ();
+		}
 	}
 
 	/// <summary>
 	/// Rotates current piece counter-clockwise.
 	/// </summary>
 	public void RotateLeft() {
-		Tetromino tetromino = currentTetromino.GetComponent<Tetromino> ();
-		tetromino.RotateLeft ();
-		
-		//*TODO Handle unable to rotate
-		if (WallKick (tetromino.blockMatrix.GetLength (0)) >= 2 * tetromino.blockMatrix.GetLength (0)) {
-			tetromino.RotateRight ();
-		}
+		currentTetromino.RotateLeft ();
 
-		UpdateGhostPiece ();
+		if (!RotationKick ()) {
+			// Invalid rotation, revert to original rotation
+			currentTetromino.RotateRight ();
+		} else {
+			// Update ghost piece with the new tetromino rotation
+			UpdateGhostPiece ();
+		}
 	}
 	#endregion
 
 	#region Kick logic
-	//*TODO Improve kick logic
-	int WallKick(int maxKicks) {
-		KickDown (maxKicks);
-		int kicks = 0;
-		if (KickLeft (maxKicks) == maxKicks) {
-			currentX += maxKicks;
-			kicks += maxKicks;
-		}
-		if (KickRight (maxKicks) == maxKicks) {
-			currentX -= maxKicks;
-			kicks += maxKicks;
-		}
+	/// <summary>
+	/// Handles kick logic when rotating near walls and pre-existing blocks
+	/// </summary>
+	/// <returns><c>true</c>, if rotation was successful, <c>false</c> otherwise.</returns>
+	bool RotationKick() {
+		int allowedKicks = 2; // Tetrominoes can only kick up to 2 units left/right
+		int currentKicks;
 
-		return kicks;
-	}
+		int originalX = currentX;
+		int originalY = currentY;
 
-	// Returns number of times kicked
-	int KickLeft(int maxKicks = 1) {
-		if (maxKicks <= 0) {
-			return 0;
-		}
-		if (!CheckValid (currentTetromino.GetComponent<Tetromino> ().blockMatrix)) {
-			currentX -= 1;
-			return 1 + KickLeft(--maxKicks);
-		}
-		return 0;
-	}
-
-	// Returns number of times kicked
-	int KickRight(int maxKicks = 1) {
-		if (maxKicks <= 0) {
-			return 0;
-		}
-		if (!CheckValid (currentTetromino.GetComponent<Tetromino> ().blockMatrix)) {
-			currentX += 1;
-			return 1 + KickRight(--maxKicks);
-		}
-		return 0;
-	}
-
-	// Kick piece down if rotated beyond top of grid
-	int KickDown(int maxKicks = 1) {
-		int kickDown = 0;
-		GameObject[,] blockMatrix = currentTetromino.GetComponent<Tetromino> ().blockMatrix;
-		for (int col = 0; col < blockMatrix.GetLength (1); col++) {
-			for (int row = 0; row < blockMatrix.GetLength (0); row++) {
-				GameObject currBlock = blockMatrix [row, col];
-				if (currBlock != null) {
-					if (currentY + (blockMatrix.GetLength (0) - 1 - row) > gridHeight - 1) {
-						kickDown += 1;
-					}
-				}
+		// Attempt kicks in each direction
+		foreach (Direction dir in System.Enum.GetValues(typeof(Direction))) {
+			currentKicks = Kick (dir, allowedKicks + 1);
+			if (currentKicks <= allowedKicks) {
+				// Tetromino was kicked successfully, this means rotation was successful
+				return true;
+			} else {
+				// Reset position of current tetromino
+				currentX = originalX;
+				currentY = originalY;
 			}
 		}
-		currentY -= kickDown;
+
+		return false;
+	}
+
+	/// <summary>
+	/// Kick tetromino one unit in the specified direction if current position is invalid.
+	/// </summary>
+	/// <returns>Number of times kicked.</returns>
+	/// <param name="direction">Direction to shift tetromino.</param>
+	/// <param name="kickAttempts">Number of kicks to attempt.</param>
+	int Kick(Direction direction, int kickAttempts) {
+		if (kickAttempts <= 0) {
+			return 0;
+		}
+
+		if (!CurrentPositionIsValid (currentTetromino.blockMatrix)) {
+			switch (direction) {
+			case Direction.left:
+				currentX -= 1;
+				break;
+			case Direction.right:
+				currentX += 1;
+				break;
+			case Direction.up:
+				currentY += 1;
+				break;
+			case Direction.down:
+				currentY -= 1;
+				break;
+			}
+			return 1 + Kick(direction, --kickAttempts);
+		}
 		return 0;
 	}
 	#endregion
@@ -490,7 +494,7 @@ public class TetrisManager : MonoBehaviour {
 	/// </summary>
 	void AddPieceToGrid() {
 		// Add each individual block to the corresponding position in the tetris grid
-		GameObject[,] blockMatrix = currentTetromino.GetComponent<Tetromino> ().blockMatrix;
+		GameObject[,] blockMatrix = currentTetromino.blockMatrix;
 		for (int row = 0; row < blockMatrix.GetLength(0); row++) {
 			for (int col = 0; col < blockMatrix.GetLength(1); col++) {
 				GameObject currBlock = blockMatrix [row, col];
@@ -501,10 +505,12 @@ public class TetrisManager : MonoBehaviour {
 			}
 		}
 		ClearLines (blockMatrix);
-		Destroy (currentTetromino);
+		Destroy (currentTetrominoObject);
+
 		// Reset hold
 		usedHold = false;
 		holdFrame.UpdateHoldFrame (!usedHold);
+
 		// Spawn next piece
 		SpawnPiece (nextTetromino);
 		NextPiece ();
@@ -522,12 +528,14 @@ public class TetrisManager : MonoBehaviour {
 		// Check for rows with completed lines
 		for (int row = 0; row < blockMatrix.GetLength (0) && checkY + row < gridHeight; row++) {
 			completeLine = true;
+
 			// Check each column in row
 			for (int col = 0; col < gridWidth && completeLine; col++) {
 				if (tetrisGrid [checkY + row] [col] == null) {
 					completeLine = false;
 				}
 			}
+
 			// Remove line if completed
 			if (completeLine) {
 				completedLines.Add (checkY + row);
@@ -542,11 +550,13 @@ public class TetrisManager : MonoBehaviour {
 			for (int j = 0; j < gridWidth; j++) {
 				emptyRowObject.Add (null);
 			}
+
 			// Destory each block in the completed line
 			int line = completedLines [row];
 			foreach (GameObject block in tetrisGrid[line]) {
 				Destroy (block);
 			}
+
 			// Shift grid at the removed line
 			tetrisGrid.RemoveAt (line);
 			tetrisGrid.Add (emptyRowObject);
@@ -585,12 +595,12 @@ public class TetrisManager : MonoBehaviour {
 
 		if (holdTetromino == null) {
 			// No tetromino held yet
-			HoldPiece(currentTetromino);
+			HoldPiece(currentTetrominoObject);
 			SpawnPiece (nextTetromino);
 			NextPiece ();
 		} else {
 			// Swap current with held tetromino
-			GameObject temp = currentTetromino;
+			GameObject temp = currentTetrominoObject;
 			SpawnPiece (holdTetromino);
 			HoldPiece (temp);
 		}
@@ -604,7 +614,7 @@ public class TetrisManager : MonoBehaviour {
 	/// <param name="holdPiece">Tetromino to be held.</param>
 	void HoldPiece(GameObject holdPiece) {
 		Tetromino tetromino = holdPiece.GetComponent<Tetromino> ();
-		tetromino.CreateTetromino (); // Used to reset the rotation
+		tetromino.CreateTetromino (); // Resets to default rotation
 		holdTetromino = holdPiece;
 		holdTetromino.transform.parent = activeHoldFrameObject.transform;
 		holdTetromino.transform.localPosition = tetromino.offset;
@@ -613,7 +623,9 @@ public class TetrisManager : MonoBehaviour {
 	#endregion
 
 	#region Menu options and game setup
-	/// Get settings from PlayerPrefs
+	/// <summary>
+	/// Load settings from PlayerPrefs
+	/// </summary>
 	void LoadSettings() {
 		useGhostPiece = PlayerPrefs.GetInt ("Show Ghost Piece", Settings.defaultShowGhostPiece ? 1 : 0) == 1 ? true : false;
 		delayedAutoShift = PlayerPrefs.GetInt ("DAS", Settings.defaultDAS);
@@ -703,7 +715,7 @@ public class TetrisManager : MonoBehaviour {
 				continue;
 			Destroy (piece.gameObject);
 		}
-		Destroy (currentTetromino);
+		Destroy (currentTetrominoObject);
 		Destroy (nextTetromino);
 		Destroy (holdTetromino);
 		Destroy (ghostPiece);
@@ -757,7 +769,7 @@ public class TetrisManager : MonoBehaviour {
 	/// <param name="active">If set to <c>true</c>, set tetrominoes to active.</param>
 	void SetTetrominoesActive(bool active) {
 		placedPieces.SetActive (active);
-		currentTetromino.SetActive (active);
+		currentTetrominoObject.SetActive (active);
 		nextTetromino.SetActive (active);
 		if (holdTetromino != null) {
 			holdTetromino.SetActive (active);
@@ -768,10 +780,11 @@ public class TetrisManager : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Toggles the orientation.
+	/// Toggles the orientation and updates view accordingly
 	/// </summary>
 	/// <param name="isLandscape">If set to <c>true</c>, toggle to landscape view.</param>
 	public void ToggleOrientation(bool isLandscape) {
+	#if MOBILE_INPUT
 		if (isLandscape) {
 			activeNextFrameObject = nextFrameObjectLandscape;
 			activeHoldFrameObject = holdFrameObjectLandscape;
@@ -781,12 +794,18 @@ public class TetrisManager : MonoBehaviour {
 			activeHoldFrameObject = holdFrameObjectPortrait;
 			activeSprintUI = sprintUIPortrait;
 		}
+	#else
+		activeNextFrameObject = nextFrameObjectLandscape;
+		activeHoldFrameObject = holdFrameObjectLandscape;
+		activeSprintUI = sprintUIStandAlone;
+	#endif
 
 		if (nextTetromino != null) {
 			nextTetromino.transform.parent = nextFrameObjectLandscape.transform;
 			nextTetromino.transform.localPosition = nextTetromino.GetComponent<Tetromino>().offset;
 			nextTetromino.transform.localScale = new Vector3 (1, 1, 1);
 		}
+
 		if (holdTetromino != null) {
 			holdTetromino.transform.parent = activeHoldFrameObject.transform;
 			holdTetromino.transform.localPosition = holdTetromino.GetComponent<Tetromino>().offset;

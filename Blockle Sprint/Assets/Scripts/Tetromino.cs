@@ -10,17 +10,17 @@ public class Tetromino : MonoBehaviour {
 	public Vector3 spawnPosition;		// Spawn position in tetris grid
 	public Vector3 offset;				// Offset position in hold/next frame
 
-	public TetrisManager.tetros myTetro;
+	public TetrisManager.TetrominoType myTetro;
 
 	/// <summary>
 	/// Creates the tetromino block.
 	/// </summary>
 	/// <param name="tetroPiece">Tetromino type.</param>
-	public void CreateTetrominoBlock(TetrisManager.tetros tetroType) {
+	public void CreateTetrominoBlock(TetrisManager.TetrominoType tetroType) {
 		myTetro = tetroType;
 
 		switch (tetroType) {
-		case TetrisManager.tetros.i:
+		case TetrisManager.TetrominoType.i:
 			arrayInts = new int[4, 4] {
 				{ 0, 0, 0, 0 },
 				{ 1, 1, 1, 1 },
@@ -33,7 +33,7 @@ public class Tetromino : MonoBehaviour {
 
 			CreateTetromino ();
 			break;
-		case TetrisManager.tetros.j:
+		case TetrisManager.TetrominoType.j:
 			arrayInts = new int[3,3] {
 				{1, 0, 0},
 				{1, 1, 1},
@@ -44,7 +44,7 @@ public class Tetromino : MonoBehaviour {
 
 			CreateTetromino ();
 			break;
-		case TetrisManager.tetros.l:
+		case TetrisManager.TetrominoType.l:
 			arrayInts = new int[3,3] {
 				{0, 0, 1},
 				{1, 1, 1},
@@ -55,7 +55,7 @@ public class Tetromino : MonoBehaviour {
 
 			CreateTetromino ();
 			break;
-		case TetrisManager.tetros.o:
+		case TetrisManager.TetrominoType.o:
 			arrayInts = new int[2,2] {
 				{1, 1},
 				{1, 1}};
@@ -65,7 +65,7 @@ public class Tetromino : MonoBehaviour {
 
 			CreateTetromino ();
 			break;
-		case TetrisManager.tetros.s:
+		case TetrisManager.TetrominoType.s:
 			arrayInts = new int[3,3] {
 				{0, 1, 1},
 				{1, 1, 0},
@@ -76,7 +76,7 @@ public class Tetromino : MonoBehaviour {
 
 			CreateTetromino ();
 			break;
-		case TetrisManager.tetros.t:
+		case TetrisManager.TetrominoType.t:
 			arrayInts = new int[3,3] {
 				{0, 1, 0},
 				{1, 1, 1},
@@ -87,7 +87,7 @@ public class Tetromino : MonoBehaviour {
 
 			CreateTetromino ();
 			break;
-		case TetrisManager.tetros.z:
+		case TetrisManager.TetrominoType.z:
 			arrayInts = new int[3,3] {
 				{1, 1, 0},
 				{0, 1, 1},

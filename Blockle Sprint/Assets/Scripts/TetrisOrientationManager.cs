@@ -5,38 +5,34 @@ using UnityEngine;
 public class TetrisOrientationManager : MonoBehaviour {
 	private bool isLandscape;
 
-	public GameObject[] landscapeObjects;
-	public GameObject[] portraitObjects;
-
 	public GameObject landscapeParent;
 	public GameObject portraitParent;
 
 	// Use this for initialization
 	void Start () {
-		#if MOBILE_INPUT
+	#if MOBILE_INPUT
 		isLandscape = (Input.deviceOrientation == DeviceOrientation.LandscapeLeft || Input.deviceOrientation == DeviceOrientation.LandscapeRight);
 		if (!isLandscape) {
 			SwitchToPortrait ();
 		} else {
 			SwitchToLandscape ();
 		}
-		#else
+	#else
 		isLandscape = true;
 		SwitchToLandscape();
-		#endif
+	#endif
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		#if MOBILE_INPUT
+	#if MOBILE_INPUT
 		// Check for orientation change and update active canvas accordingly
 		if (!isLandscape && (Input.deviceOrientation == DeviceOrientation.LandscapeLeft || Input.deviceOrientation == DeviceOrientation.LandscapeRight)) {
 			SwitchToLandscape ();
 		} else if (isLandscape && (Input.deviceOrientation == DeviceOrientation.Portrait || Input.deviceOrientation == DeviceOrientation.PortraitUpsideDown)) {
 			SwitchToPortrait ();
 		}
-		#endif
-
+	#endif
 	}
 
 	/// <summary>
@@ -47,8 +43,6 @@ public class TetrisOrientationManager : MonoBehaviour {
 		Camera.main.transform.position = new Vector3 (4.5f, 11.5f, -24f);
 		landscapeParent.SetActive (true);
 		portraitParent.SetActive (false);
-		//SetObjectsActive (landscapeObjects, true);
-		//SetObjectsActive (portraitObjects, false);
 		TetrisManager.tm.ToggleOrientation (true);
 	}
 
@@ -60,14 +54,6 @@ public class TetrisOrientationManager : MonoBehaviour {
 		Camera.main.transform.position = new Vector3 (4.5f, 7f, -31f);
 		landscapeParent.SetActive (false);
 		portraitParent.SetActive (true);
-		//SetObjectsActive (landscapeObjects, false);
-		//SetObjectsActive (portraitObjects, true);
 		TetrisManager.tm.ToggleOrientation (false);
-	}
-
-	void SetObjectsActive(GameObject[] objectsArray, bool active) {
-		foreach (GameObject obj in objectsArray) {
-			obj.SetActive (active);
-		}
 	}
 }

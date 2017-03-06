@@ -7,7 +7,7 @@ public class ColorifyText : MonoBehaviour {
 	public string textString;
 	private Text textObject;
 
-	private Color[] colors = new Color[] {
+	public Color[] colors = new Color[] {
 		Color.cyan,
 		Color.blue,
 		new Color (255, 153, 0), // Orange

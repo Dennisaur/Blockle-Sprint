@@ -30,11 +30,11 @@ public class Settings : MonoBehaviour {
 		Screen.autorotateToLandscapeRight = true;
 		Screen.orientation = ScreenOrientation.AutoRotation;
 
-		// Set up starting orientation
+		// Initialize SettingsDisplay for both orientations
 		portraitSettings = PortraitCanvas.GetComponent<SettingsDisplay> ();
 		landscapeSettings = LandscapeCanvas.GetComponent<SettingsDisplay> ();
 
-		#if MOBILE_INPUT
+	#if MOBILE_INPUT
 		isLandscape = (Input.deviceOrientation == DeviceOrientation.LandscapeLeft || Input.deviceOrientation == DeviceOrientation.LandscapeRight);
 		activeSettingsCanvas = isLandscape ? landscapeSettings : portraitSettings;
 		if (isLandscape) {
@@ -42,11 +42,11 @@ public class Settings : MonoBehaviour {
 		} else {
 			SwitchToPortrait ();
 		}
-		#else
+	#else
 		isLandscape = true;
 		activeSettingsCanvas = landscapeSettings;
 		SwitchToLandscape();
-		#endif
+	#endif
 
 		// Get previously loaded tuning settings
 		showGhostPiece = PlayerPrefs.GetInt("Show Ghost Piece", defaultShowGhostPiece ? 1 : 0) == 1 ? true : false;
@@ -68,7 +68,7 @@ public class Settings : MonoBehaviour {
 		if (activeSettingsCanvas == null)
 			return;
 		
-		#if MOBILE_INPUT
+	#if MOBILE_INPUT
 		// Check for orientation change and update active canvas accordingly
 		if (!isLandscape && (Input.deviceOrientation == DeviceOrientation.LandscapeLeft || Input.deviceOrientation == DeviceOrientation.LandscapeRight)) {
 			GetCurrentSettings ();
@@ -79,15 +79,21 @@ public class Settings : MonoBehaviour {
 			SwitchToPortrait ();
 			LoadCurrentSettings ();
 		}
-		#endif
+	#endif
 	}
-		
+
+	/// <summary>
+	/// Stores the current settings values. 
+	/// </summary>
 	void GetCurrentSettings() {
 		showGhostPiece = activeSettingsCanvas.showGhostPiece;
 		das = activeSettingsCanvas.das;
 		arr = activeSettingsCanvas.arr;
 	}
 
+	/// <summary>
+	/// Loads the current settings values.
+	/// </summary>
 	void LoadCurrentSettings() {
 		activeSettingsCanvas.UpdateSettingsDisplay (showGhostPiece, das, arr);
 	}
@@ -112,11 +118,16 @@ public class Settings : MonoBehaviour {
 		activeSettingsCanvas = portraitSettings;
 	}
 
+	/// <summary>
+	/// Uses default for current settings.
+	/// </summary>
 	public void UseDefault() {
 		activeSettingsCanvas.UpdateSettingsDisplay (defaultShowGhostPiece, defaultDAS, defaultARR);
 	}
-		
-	// Save current settings in PlayerPrefs
+
+	/// <summary>
+	/// Save current settings in PlayerPrefs.
+	/// </summary>
 	void Save() {
 		GetCurrentSettings();
 		PlayerPrefs.SetInt("Show Ghost Piece", showGhostPiece ? 1 : 0);
@@ -124,7 +135,9 @@ public class Settings : MonoBehaviour {
 		PlayerPrefs.SetInt("ARR", arr);
 	}
 
-	// Save current settings and return to menu screen
+	/// <summary>
+	/// Save settings and return to main menu screen
+	/// </summary>
 	public void SaveAndExit() {
 		Save ();
 		SceneManager.LoadScene ("Main Menu");

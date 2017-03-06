@@ -5,17 +5,6 @@ using UnityEngine.SceneManagement;
 using UnityStandardAssets.CrossPlatformInput;
 
 public class MainMenu : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
-
-	}
-
-	// Update is called once per frame
-	void Update () {
-		//*TODO back button to exit
-	}
-
 	public void StartGame() {
 		SceneManager.LoadScene ("Blockle");
 	}
