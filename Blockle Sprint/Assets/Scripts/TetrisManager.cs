@@ -285,6 +285,16 @@ public class TetrisManager : MonoBehaviour {
 	}
 
 	/// <summary>
+	/// Resets movement to prevent carryover input.
+	/// </summary>
+	void ResetMovement() {
+		rightDown = false;
+		leftDown = false;
+		currentARR = -1;
+		currentDAS = -1;
+	}
+
+	/// <summary>
 	/// Moves current piece to the right.
 	/// </summary>
 	void MoveRight() {
@@ -656,6 +666,9 @@ public class TetrisManager : MonoBehaviour {
 		linesRemaining = sprintLines;
 		timeElapsed = 0;
 		runTimer = false;
+
+		usedHold = false;
+		ResetMovement ();
 	}
 
 	/// <summary>
@@ -746,6 +759,7 @@ public class TetrisManager : MonoBehaviour {
 		SetTetrominoesActive (true);
 		HideAllMenus ();
 
+		ResetMovement ();
 		runTimer = true;
 	}
 
