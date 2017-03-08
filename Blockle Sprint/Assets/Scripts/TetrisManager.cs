@@ -794,8 +794,12 @@ public class TetrisManager : MonoBehaviour {
 	/// <param name="active">If set to <c>true</c>, set tetrominoes to active.</param>
 	void SetTetrominoesActive(bool active) {
 		placedPieces.SetActive (active);
-		currentTetrominoObject.SetActive (active);
-		nextTetromino.SetActive (active);
+		if (currentTetromino != null) {
+			currentTetrominoObject.SetActive (active);
+		}
+		if (nextTetromino != null) {
+			nextTetromino.SetActive (active);
+		}
 		if (holdTetromino != null) {
 			holdTetromino.SetActive (active);
 		}
