@@ -61,8 +61,7 @@ public class Settings : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (Input.GetKeyDown ("escape")) {
-			//*TODO Discard changes prompt
-			SceneManager.LoadScene ("Main Menu");
+			Exit ();
 		}
 
 		if (activeSettingsCanvas == null)
@@ -140,6 +139,13 @@ public class Settings : MonoBehaviour {
 	/// </summary>
 	public void SaveAndExit() {
 		Save ();
+		Exit ();
+	}
+
+	/// <summary>
+	/// Returns to main menu.
+	/// </summary>
+	public void Exit() {
 		SceneManager.LoadScene ("Main Menu");
 	}
 }
