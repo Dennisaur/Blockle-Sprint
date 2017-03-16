@@ -136,6 +136,14 @@ public class TetrisManager : MonoBehaviour {
 	}
 
 	/// <summary>
+	/// Update the DAS/ARR movement using fixed time frames for consistency because
+	/// these settings are frame-based rather than time-based.
+	/// </summary>
+	void FixedUpdate() {
+		UpdateXARR ();
+	}
+
+	/// <summary>
 	/// Refills the bag in a random order of the 7 tetrominoes.
 	/// </summary>
 	void RefillBag() {
@@ -261,7 +269,12 @@ public class TetrisManager : MonoBehaviour {
 			currentDAS = -1;
 			currentARR = -1;
 		}
+	}
 
+	/// <summary>
+	/// Handles automatic X movement when left/right is held down
+	/// </summary>
+	void UpdateXARR() {
 		// Delayed auto shift
 		if (currentDAS >= 0) {
 			currentDAS += 1;

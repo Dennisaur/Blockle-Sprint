@@ -4989,11 +4989,6 @@ Prefab:
       propertyPath: sprintUIPortrait
       value: 
       objectReference: {fileID: 737388204}
-    - target: {fileID: 114953476325319964, guid: eabcadd2e83db7b4d8e7ef4659c70cde,
-        type: 2}
-      propertyPath: sprintLines
-      value: 40
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: eabcadd2e83db7b4d8e7ef4659c70cde, type: 2}
   m_IsPrefabParent: 0
